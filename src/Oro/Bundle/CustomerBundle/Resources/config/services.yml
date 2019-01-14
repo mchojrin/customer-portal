@@ -422,23 +422,6 @@ services:
             - { name: oro_menu.builder, alias: frontend_mostviewed }
             - { name: oro_featuretogle.feature, feature: email }
 
-#    BB-14204: Fatal error due to serialization issue on product view page
-#    (Disabled until navigation history functionality on commerce frontend will be fully worked.)
-#
-#    kernel.listener.frontend_nav_history_response:
-#        class: '%oro_navigation.event.response_history.listener.class%'
-#        tags:
-#            - { name: kernel.event_listener, event: kernel.response, method: onResponse }
-#        arguments:
-#            - "@oro_navigation.item.factory"
-#            - "@security.token_storage"
-#            - "@doctrine"
-#            - "@oro_navigation.title_service"
-#        calls:
-#            - [ setHistoryItemEntityFQCN, ['%oro_customer.entity.navigation_history_item.class%']]
-#            - [ setUserEntityFQCN, ['%oro_customer.entity.customer_user.class%']]
-#            - [ setNavigationHistoryItemType, ['frontend_history']]
-
     oro_customer.item.builder.history:
         class: 'Oro\Bundle\NavigationBundle\Entity\Builder\HistoryItemBuilder'
         public: false
@@ -1047,8 +1030,26 @@ services:
             - '@oro_customer.security.orm.ownership_sql_walker_builder.inner'
             - '@oro_security.acl.group_provider.chain'
 
+    oro_customer.handler.customer_registration_handler:
+        class: Oro\Bundle\CustomerBundle\Handler\CustomerRegistrationHandler
+        arguments:
+            - '@oro_customer.provider.frontend_customer_user_registration_form'
+            - '@oro_customer_user.manager'
+            - '@oro_customer.handler.frontend_customer_user_handler'
+            - '@oro_form.update_handler'
+            - '@translator'
+
+    oro_customer.handler.forgot_password:
+        class: 'Oro\Bundle\CustomerBundle\Handler\ForgotPasswordHandler'
+        lazy: true
+        arguments:
+            - '@oro_customer.customer_user.password_request.handler'
+            - '@oro_customer.provider.frontend_customer_user_form'
+            - '@session'
+
     oro_customer.access_rule.self_managed_public_customer_user_role:
         class: Oro\Bundle\CustomerBundle\Acl\AccessRule\SelfManagedPublicCustomerUserRoleAccessRule
+        public: false
         arguments:
             - '@oro_security.token_accessor'
         tags:
